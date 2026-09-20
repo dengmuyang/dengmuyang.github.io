@@ -1,9 +1,621 @@
 <!DOCTYPE html>
-<html>
-    <head>
-        <title>abab</title>
-    </head>
-    <body>
-      <p>hello</p>
-    </body>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Luogu Online Judge</title>
+  <style>
+    :root {
+      --bg: #0d0e15;
+      --card: #151722;
+      --border: #232738;
+      --pri: #3b82f6;
+      --pri-hover: #2563eb;
+      --txt: #f1f5f9;
+      --sub: #94a3b8;
+      --success: #10b981;
+      --warn: #f59e0b;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--txt); }
+
+    /* 顶部导航 */
+    header { background: #12141f; border-bottom: 1px solid var(--border); height: 58px; display: flex; align-items: center; justify-content: space-between; padding: 0 30px; position: sticky; top: 0; z-index: 100; }
+    .brand { font-size: 19px; font-weight: 700; color: #fff; cursor: pointer; display: flex; align-items: center; gap: 10px; }
+    .brand-logo { background: linear-gradient(135deg, #3b82f6, #8b5cf6); padding: 4px 10px; border-radius: 6px; font-size: 14px; }
+    nav { display: flex; align-items: center; gap: 15px; }
+    nav a { color: var(--sub); text-decoration: none; font-size: 14px; font-weight: 500; cursor: pointer; transition: 0.2s; padding: 6px 12px; border-radius: 6px; }
+    nav a.active, nav a:hover { color: #fff; background: rgba(255,255,255,0.05); }
+
+    .container { max-width: 1180px; margin: 24px auto; padding: 0 20px; }
+    .page { display: none; }
+    .page.active { display: block; }
+
+    /* 网格与卡片布局 */
+    .grid-main { display: grid; grid-template-columns: 1fr 310px; gap: 20px; }
+    .card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 20px; margin-bottom: 20px; }
+    .card-title { font-size: 16px; font-weight: 600; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; color: #fff; }
+
+    /* 表格 */
+    table { width: 100%; border-collapse: collapse; }
+    th, td { padding: 12px 10px; text-align: left; border-bottom: 1px solid var(--border); font-size: 14px; }
+    th { color: var(--sub); font-weight: 600; font-size: 13px; }
+
+    /* 难度标签 */
+    .badge-diff { padding: 3px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; color: #fff; display: inline-block; }
+
+    /* 按钮与输入框 */
+    .btn { background: var(--pri); color: #fff; border: none; padding: 10px 18px; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 600; transition: 0.2s; }
+    .btn:hover { background: var(--pri-hover); }
+    .btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+    input[type="text"], input[type="password"] {
+      width: 100%; background: #0b0c13; border: 1px solid var(--border); color: #fff; padding: 10px; border-radius: 6px; margin-top: 6px; margin-bottom: 14px; outline: none; font-size: 14px;
+    }
+    input:focus { border-color: var(--pri); }
+    label { font-size: 13px; color: var(--sub); }
+
+    textarea {
+      width: 100%; background: #0b0c13; border: 1px solid var(--border); color: #fff;
+      padding: 10px; border-radius: 6px; outline: none; font-size: 14px;
+      font-family: inherit; resize: vertical; min-height: 84px; line-height: 1.6;
+    }
+    textarea:focus { border-color: var(--pri); }
+
+    /* 运势卡片 */
+    .fortune-card { background: linear-gradient(135deg, #1e2235, #151722); border: 1px solid #2d334d; text-align: center; padding: 20px; border-radius: 10px; }
+    .fortune-val { font-size: 32px; font-weight: 800; color: #f59e0b; margin: 8px 0; }
+    .fortune-desc { font-size: 13px; color: var(--sub); }
+
+    /* 统计网格 */
+    .stat-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; text-align: center; }
+    .stat-num { font-size: 22px; font-weight: 700; color: var(--pri); }
+    .stat-label { font-size: 12px; color: var(--sub); margin-top: 4px; }
+
+    .ip-box { background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); color: var(--success); padding: 10px; border-radius: 6px; font-size: 12px; margin-top: 10px; word-break: break-all; }
+
+    /* ============ 犇犇样式 ============ */
+    .benben-item { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 16px; margin-bottom: 12px; transition: 0.2s; }
+    .benben-item:hover { border-color: #2f3550; }
+    .benben-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+    .avatar { width: 34px; height: 34px; border-radius: 50%; background: linear-gradient(135deg, #3b82f6, #8b5cf6); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; color: #fff; flex-shrink: 0; }
+    .benben-author { font-weight: 600; color: #fff; font-size: 14px; }
+    .benben-time { font-size: 12px; color: var(--sub); margin-top: 2px; }
+    .benben-content { font-size: 14px; line-height: 1.7; color: #e2e8f0; word-break: break-word; white-space: pre-wrap; }
+    .benben-actions { display: flex; gap: 18px; margin-top: 12px; font-size: 13px; color: var(--sub); }
+    .benben-actions span { cursor: pointer; user-select: none; transition: 0.2s; }
+    .benben-actions span:hover { color: #fff; }
+    .benben-actions span.liked { color: var(--warn); font-weight: 600; }
+    .benben-actions span.static { cursor: default; }
+    .benben-actions span.static:hover { color: var(--sub); }
+    .hot-item { padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
+    .hot-item:last-child { border-bottom: none; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="brand" onclick="goPage('home')">
+      <span class="brand-logo">OJ</span> Luogu Online Judge
+    </div>
+    <nav>
+      <a onclick="goPage('home')" id="nav-home" class="active">主页</a>
+      <a onclick="goPage('benben')" id="nav-benben">犇犇</a>
+      <a onclick="goPage('auth')" id="nav-auth">登录 / 注册</a>
+      <span id="nav-user" style="font-size: 13px;"></span>
+    </nav>
+  </header>
+
+  <div class="container">
+
+    <!-- 1. 洛谷主页 -->
+    <div id="page-home" class="page active">
+      <div class="grid-main">
+        <main>
+          <div class="card">
+            <div class="card-title">📌 欢迎来到 Luogu Online Judge</div>
+            <p style="font-size: 14px; color: var(--sub); line-height: 1.6;">
+              极客暗黑风格代码评测平台主页。已成功集成客户端登录鉴权与 Session IP 文件持久化。
+            </p>
+          </div>
+
+          <div class="card">
+            <div class="card-title">🔥 推荐题目</div>
+            <table id="home-prob-table">
+              <thead><tr><th>编号</th><th>题目名称</th><th>难度</th><th>通过率</th></tr></thead>
+              <tbody><tr><td colspan="4" style="color:var(--sub)">加载中...</td></tr></tbody>
+            </table>
+          </div>
+
+          <div class="card">
+            <div class="card-title">💬 社区讨论</div>
+            <div id="home-feed-list"></div>
+          </div>
+        </main>
+
+        <aside>
+          <!-- 运势打卡卡片 -->
+          <div class="card fortune-card">
+            <div style="font-size:14px; font-weight:600; color:var(--sub);">每日运势</div>
+            <div class="fortune-val">大吉</div>
+            <div class="fortune-desc">宜：刷题 AC | 忌：写死循环</div>
+            <button class="btn" style="margin-top:14px; width:100%;" onclick="checkIn()" id="ft-btn">今日打卡</button>
+          </div>
+
+          <!-- 用户状态卡片 -->
+          <div class="card">
+            <div class="card-title">个人状态</div>
+            <div id="user-side-info" style="font-size:14px; color:var(--sub);">未登录</div>
+          </div>
+
+          <!-- 平台数据 -->
+          <div class="card">
+            <div class="card-title">📊 平台统计</div>
+            <div class="stat-grid">
+              <div><div class="stat-num" id="st-p">0</div><div class="stat-label">题目数量</div></div>
+              <div><div class="stat-num" id="st-u">0</div><div class="stat-label">注册用户</div></div>
+            </div>
+          </div>
+
+          <!-- 最新犇犇 -->
+          <div class="card">
+            <div class="card-title">🐮 最新犇犇</div>
+            <div id="home-benben-list"></div>
+          </div>
+
+          <!-- 近期比赛列表 -->
+          <div class="card">
+            <div class="card-title">🏆 近期比赛</div>
+            <div id="home-contest-list"></div>
+          </div>
+        </aside>
+      </div>
+    </div>
+
+    <!-- 2. 登录 / 注册页 -->
+    <div id="page-auth" class="page">
+      <div class="card" style="max-width: 400px; margin: 50px auto;">
+        <div class="card-title" id="auth-title">账户登录</div>
+        <form onsubmit="handleAuth(event)">
+          <label>用户名</label>
+          <input type="text" id="auth-user" required placeholder="请输入用户名" autocomplete="username">
+          <label>密码</label>
+          <input type="password" id="auth-pwd" required placeholder="请输入密码" autocomplete="current-password">
+
+          <div style="display:flex; align-items:center; gap: 8px; margin-bottom: 14px;" id="remember-box">
+            <input type="checkbox" id="auth-remember" checked style="width: auto; margin: 0;">
+            <label style="margin: 0; cursor:pointer;" for="auth-remember">记住我 (保存登录 Token 并记录客户端 IP)</label>
+          </div>
+
+          <button type="submit" class="btn" style="width: 100%;" id="auth-btn">登录</button>
+        </form>
+
+        <p style="text-align: center; font-size: 13px; color: var(--sub); margin-top: 16px; cursor: pointer;" onclick="toggleAuthMode()" id="auth-switch">没有账号？立即注册</p>
+
+        <div id="session-log"></div>
+      </div>
+    </div>
+
+    <!-- 3. 犇犇页 -->
+    <div id="page-benben" class="page">
+      <div class="grid-main">
+        <main>
+          <div class="card">
+            <div class="card-title">
+              🐮 发布犇犇
+              <span style="font-size:12px; font-weight:400; color:var(--sub);" id="benben-editor-hint">登录后即可发布</span>
+            </div>
+            <textarea id="benben-input" maxlength="200" placeholder="记录一下刷题日常吧…"></textarea>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:10px;">
+              <span id="benben-count" style="font-size:12px; color:var(--sub);">0 / 200</span>
+              <button class="btn" onclick="postBenben()">发布</button>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-title">🌊 犇犇广场</div>
+            <div id="benben-list"><div style="color:var(--sub); font-size:14px;">加载中...</div></div>
+          </div>
+        </main>
+
+        <aside>
+          <div class="card">
+            <div class="card-title">🔥 热门犇犇</div>
+            <div id="benben-hot"></div>
+          </div>
+          <div class="card">
+            <div class="card-title">💡 犇犇守则</div>
+            <div style="font-size:13px; color:var(--sub); line-height:1.9;">
+              1. 友善交流，不要对线<br>
+              2. 单条不超过 200 字<br>
+              3. 发布 / 点赞需要登录
+            </div>
+          </div>
+        </aside>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    /* ============ 全局状态 ============ */
+    let isRegisterMode = false;
+    let currentUser = null;   // 当前登录用户
+
+    /* ============ 工具函数 ============ */
+    // 统一转义，防止 XSS
+    function esc(s) {
+      return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+      }[c]));
+    }
+
+    // Token 读写（记住我用 localStorage，否则 sessionStorage）
+    function getToken() {
+      return localStorage.getItem('oj_token') || sessionStorage.getItem('oj_token') || '';
+    }
+    function setToken(token, persist) {
+      clearToken();
+      (persist ? localStorage : sessionStorage).setItem('oj_token', token);
+    }
+    function clearToken() {
+      localStorage.removeItem('oj_token');
+      sessionStorage.removeItem('oj_token');
+    }
+    // 带鉴权头的请求头
+    function authHeaders(extra) {
+      const h = Object.assign({}, extra || {});
+      const t = getToken();
+      if (t) h['Authorization'] = t;
+      return h;
+    }
+
+    /* ============ 路由 ============ */
+    function goPage(pageId) {
+      const pageEl = document.getElementById(`page-${pageId}`);
+      if (!pageEl) return;
+
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+      document.querySelectorAll('nav a').forEach(a => a.classList.remove('active'));
+
+      pageEl.classList.add('active');
+      const navEl = document.getElementById(`nav-${pageId}`);
+      if (navEl) navEl.classList.add('active');
+
+      if (pageId === 'home') loadHomeData();
+      if (pageId === 'benben') loadBenben();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    /* ============ 登录态 ============ */
+    async function checkAutoLogin() {
+      const token = getToken();
+      if (!token) return;
+
+      try {
+        const res = await fetch('/api/auto-login', {
+          method: 'POST',
+          headers: { 'Authorization': token }
+        });
+        const data = await res.json();
+        if (data.ok) {
+          renderUser(data.user, data.session);
+        } else {
+          clearToken();           // 修复：失效 token 残留问题
+        }
+      } catch (e) {
+        // 网络异常时保留 token，等待用户重试
+      }
+    }
+
+    function renderUser(user, session) {
+      currentUser = user || null;
+
+      const navUser = document.getElementById('nav-user');
+      const navAuth = document.getElementById('nav-auth');
+      const sideInfo = document.getElementById('user-side-info');
+
+      if (user) {
+        navUser.innerHTML = `<b style="color:#fff;">${esc(user.username)}</b>`;
+        navAuth.innerText = '退出登录';
+        navAuth.onclick = logout;
+
+        const ipNotice = (session && session.ip)
+          ? `<div class="ip-box">已启用记住我<br>绑定客户端 IP: <b>${esc(session.ip)}</b></div>`
+          : '';
+
+        sideInfo.innerHTML = `
+          <div style="font-weight:bold; color:#fff; font-size:16px;">${esc(user.username)}</div>
+          <div style="margin-top:6px;">Rating: <b style="color:var(--pri);">${esc(user.rating)}</b></div>
+          <div style="margin-top:2px;">通过题目: <b style="color:var(--success);">${esc(user.solved)}</b> 题</div>
+          ${ipNotice}
+        `;
+      } else {
+        navUser.innerHTML = '';
+        navAuth.innerText = '登录 / 注册';
+        navAuth.onclick = () => goPage('auth');
+        sideInfo.innerHTML = `未登录，<a style="color:var(--pri); cursor:pointer;" onclick="goPage('auth')">立即登录</a>`;
+      }
+
+      renderBenbenEditorHint();
+    }
+
+    async function logout() {
+      // 修复：同步清理服务端 Session，避免 token 长期有效
+      try {
+        await fetch('/api/logout', { method: 'POST', headers: authHeaders() });
+      } catch (e) { /* 忽略 */ }
+
+      clearToken();
+      renderUser(null, null);
+      goPage('home');
+    }
+
+    /* ============ 首页数据 ============ */
+    async function loadHomeData() {
+      try {
+        const res = await fetch('/api/home');
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const data = await res.json();
+
+        document.getElementById('st-p').innerText = data.stats.probCnt;
+        document.getElementById('st-u').innerText = data.stats.userCnt;
+
+        // 推荐题目
+        document.getElementById('home-prob-table').querySelector('tbody').innerHTML =
+          (data.problems || []).map(p => `
+            <tr>
+              <td><b>${esc(p.id)}</b></td>
+              <td><b>${esc(p.title)}</b></td>
+              <td><span class="badge-diff" style="background:${esc(p.color)}">${esc(p.diff)}</span></td>
+              <td style="color:var(--sub);">${esc(p.passRate)}</td>
+            </tr>
+          `).join('');
+
+        // 社区 Feed
+        document.getElementById('home-feed-list').innerHTML =
+          (data.discussions || []).map(d => `
+            <div style="padding: 10px 0; border-bottom: 1px solid var(--border); display:flex; justify-content:space-between; font-size:14px;">
+              <div><b>${esc(d.author)}</b>: ${esc(d.text)}</div>
+              <div style="color:var(--sub); font-size:12px;">${esc(d.time)}</div>
+            </div>
+          `).join('') || '<div style="color:var(--sub); font-size:14px;">暂无讨论</div>';
+
+        // 最新犇犇
+        document.getElementById('home-benben-list').innerHTML =
+          (data.benben || []).map(b => `
+            <div style="padding: 8px 0; border-bottom: 1px solid var(--border); font-size:13px;">
+              <div style="color:#fff; font-weight:600;">${esc(b.author)}
+                <span style="color:var(--sub); font-weight:400; font-size:12px;">· ❤️ ${esc(b.likes)}</span>
+              </div>
+              <div style="color:var(--sub); margin-top:2px; line-height:1.5;">${esc(b.content)}</div>
+            </div>
+          `).join('') || '<div style="color:var(--sub); font-size:13px;">暂无犇犇</div>';
+
+        // 近期比赛
+        document.getElementById('home-contest-list').innerHTML =
+          (data.contests || []).map(c => `
+            <div style="padding: 8px 0; border-bottom: 1px solid var(--border); font-size:13px;">
+              <div style="font-weight:600; color:#fff;">${esc(c.title)}</div>
+              <div style="color:var(--sub); margin-top:2px;">${esc(c.time)} (${esc(c.duration)})</div>
+            </div>
+          `).join('') || '<div style="color:var(--sub); font-size:13px;">暂无比赛</div>';
+
+      } catch (e) {
+        document.getElementById('st-p').innerText = '0';
+        document.getElementById('st-u').innerText = '0';
+        document.getElementById('home-prob-table').querySelector('tbody').innerHTML =
+          '<tr><td colspan="4" style="color:var(--sub);">数据加载失败，请确认服务端已启动</td></tr>';
+        document.getElementById('home-feed-list').innerHTML = '<div style="color:var(--sub); font-size:14px;">暂无数据</div>';
+        document.getElementById('home-benben-list').innerHTML = '<div style="color:var(--sub); font-size:13px;">暂无数据</div>';
+        document.getElementById('home-contest-list').innerHTML = '<div style="color:var(--sub); font-size:13px;">暂无数据</div>';
+      }
+    }
+
+    /* ============ 打卡（修复：可重复打卡） ============ */
+    function todayKey() { return new Date().toDateString(); }
+
+    function syncCheckInButton() {
+      const btn = document.getElementById('ft-btn');
+      if (!btn) return;
+      if (localStorage.getItem('oj_checkin') === todayKey()) {
+        btn.innerText = '已打卡 ✓';
+        btn.disabled = true;
+      } else {
+        btn.innerText = '今日打卡';
+        btn.disabled = false;
+      }
+    }
+
+    function checkIn() {
+      const btn = document.getElementById('ft-btn');
+      if (localStorage.getItem('oj_checkin') === todayKey()) {
+        alert('今天已经打卡过啦～');
+        return;
+      }
+      localStorage.setItem('oj_checkin', todayKey());
+      syncCheckInButton();
+      alert('打卡成功！');
+    }
+
+    /* ============ 犇犇 ============ */
+    function renderBenbenEditorHint() {
+      const hint = document.getElementById('benben-editor-hint');
+      const ta = document.getElementById('benben-input');
+      if (!hint || !ta) return;
+      if (currentUser) {
+        hint.innerHTML = `以 <b style="color:#fff;">${esc(currentUser.username)}</b> 的身份发布`;
+        ta.placeholder = '记录一下刷题日常吧…';
+      } else {
+        hint.innerText = '登录后即可发布';
+        ta.placeholder = '登录后即可发布犇犇…';
+      }
+    }
+
+    function benbenItemHTML(b) {
+      const liked = !!b.liked;
+      const initial = esc((b.author || '?').charAt(0).toUpperCase());
+      return `
+        <div class="benben-item">
+          <div class="benben-head">
+            <div style="display:flex; align-items:center; gap:10px;">
+              <div class="avatar">${initial}</div>
+              <div>
+                <div class="benben-author">${esc(b.author)}</div>
+                <div class="benben-time">${esc(b.time)}</div>
+              </div>
+            </div>
+          </div>
+          <div class="benben-content">${esc(b.content)}</div>
+          <div class="benben-actions">
+            <span class="${liked ? 'liked' : ''}" onclick="toggleLike(${Number(b.id)})">
+              ${liked ? '❤️' : '🤍'} ${Number(b.likes) || 0}
+            </span>
+            <span class="static">🐮 犇犇</span>
+          </div>
+        </div>`;
+    }
+
+    async function loadBenben() {
+      const listEl = document.getElementById('benben-list');
+      const hotEl = document.getElementById('benben-hot');
+      if (!listEl) return;
+
+      try {
+        const res = await fetch('/api/benben', { headers: authHeaders() });
+        const data = await res.json();
+        const list = data.list || [];
+
+        listEl.innerHTML = list.length
+          ? list.map(benbenItemHTML).join('')
+          : '<div style="color:var(--sub); font-size:14px; padding:6px 0;">还没有犇犇，快来发第一条吧～</div>';
+
+        const hot = [...list].sort((a, b) => (b.likes || 0) - (a.likes || 0)).slice(0, 3);
+        hotEl.innerHTML = hot.length
+          ? hot.map(h => `
+              <div class="hot-item">
+                <div style="color:#fff; font-weight:600;">${esc(h.author)}</div>
+                <div style="color:var(--sub); margin-top:3px; line-height:1.5;">${esc(h.content)}</div>
+                <div style="color:var(--warn); margin-top:4px; font-size:12px;">❤️ ${Number(h.likes) || 0}</div>
+              </div>
+            `).join('')
+          : '<div style="color:var(--sub); font-size:13px;">暂无数据</div>';
+
+      } catch (e) {
+        listEl.innerHTML = '<div style="color:var(--sub); font-size:14px;">加载失败，请稍后重试</div>';
+        hotEl.innerHTML = '<div style="color:var(--sub); font-size:13px;">暂无数据</div>';
+      }
+    }
+
+    async function postBenben() {
+      const input = document.getElementById('benben-input');
+      const content = input.value.trim();
+
+      if (!currentUser) {
+        alert('请先登录后再发布犇犇');
+        return goPage('auth');
+      }
+      if (!content) {
+        alert('犇犇内容不能为空');
+        return;
+      }
+
+      try {
+        const res = await fetch('/api/benben', {
+          method: 'POST',
+          headers: authHeaders({ 'Content-Type': 'application/json' }),
+          body: JSON.stringify({ content })
+        });
+        const data = await res.json();
+        if (!res.ok || !data.ok) return alert(data.msg || '发布失败');
+
+        input.value = '';
+        document.getElementById('benben-count').innerText = '0 / 200';
+        await loadBenben();
+      } catch (e) {
+        alert('网络错误，发布失败');
+      }
+    }
+
+    async function toggleLike(id) {
+      if (!currentUser) {
+        alert('请先登录后再点赞');
+        return goPage('auth');
+      }
+      try {
+        const res = await fetch('/api/benben/like', {
+          method: 'POST',
+          headers: authHeaders({ 'Content-Type': 'application/json' }),
+          body: JSON.stringify({ id })
+        });
+        const data = await res.json();
+        if (!res.ok || !data.ok) return alert(data.msg || '操作失败');
+        await loadBenben();
+      } catch (e) {
+        alert('网络错误');
+      }
+    }
+
+    /* ============ 登录 / 注册 ============ */
+    function toggleAuthMode() {
+      isRegisterMode = !isRegisterMode;
+      document.getElementById('auth-title').innerText = isRegisterMode ? '创建账户' : '账户登录';
+      document.getElementById('auth-btn').innerText = isRegisterMode ? '注册' : '登录';
+      document.getElementById('auth-switch').innerText = isRegisterMode ? '已有账号？切回登录' : '没有账号？立即注册';
+      document.getElementById('remember-box').style.display = isRegisterMode ? 'none' : 'flex';
+      document.getElementById('auth-pwd').value = '';
+    }
+
+    async function handleAuth(e) {
+      e.preventDefault();
+
+      const username = document.getElementById('auth-user').value.trim();
+      const pwd = document.getElementById('auth-pwd').value;
+      const remember = !isRegisterMode && document.getElementById('auth-remember').checked;
+      const btn = document.getElementById('auth-btn');
+
+      if (!username || !pwd) return alert('用户名和密码不能为空');
+
+      btn.disabled = true;
+      try {
+        const res = await fetch(isRegisterMode ? '/api/register' : '/api/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, pwd, remember })
+        });
+        const data = await res.json();
+        if (!res.ok || !data.ok) return alert(data.msg || '操作失败');
+
+        if (isRegisterMode) {
+          alert('注册成功，请直接登录！');
+          toggleAuthMode();
+          document.getElementById('auth-user').value = username;
+        } else {
+          setToken(data.token, remember);   // 修复：未勾选记住我时存 sessionStorage
+          renderUser(data.user, data.session);
+          document.getElementById('auth-pwd').value = '';
+          alert('登录成功！');
+          goPage('home');
+        }
+      } catch (err) {
+        alert('网络错误，请确认服务端已启动');
+      } finally {
+        btn.disabled = false;
+      }
+    }
+
+    /* ============ 初始化 ============ */
+    (function init() {
+      const ta = document.getElementById('benben-input');
+      if (ta) {
+        ta.addEventListener('input', () => {
+          document.getElementById('benben-count').innerText = `${ta.value.length} / 200`;
+        });
+      }
+      syncCheckInButton();
+      checkAutoLogin();
+      loadHomeData();
+    })();
+  </script>
+</body>
 </html>
